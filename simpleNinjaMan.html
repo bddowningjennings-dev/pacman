@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NinjaMan</title>
+    <style type="text/css">
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .row {
+        line-height: 0;
+      }
+      .wall {
+        background-color:  blue;
+        height: 30px;
+        width: 30px;
+        display: inline-block;
+      }
+      .sushi {
+        background-color:  black;
+        height: 30px;
+        width: 30px;
+        display: inline-block;
+        background-image: url('img/sushi.png');
+        background-size: contain;
+      }
+      .onigiri {
+        background-color:  black;
+        height: 30px;
+        width: 30px;
+        display: inline-block;
+        background-image: url('img/onigiri.png');
+        background-size: contain;        
+      }
+      .blank {
+        background-color:  black;
+        height: 30px;
+        width: 30px;
+        display: inline-block;
+      }
+      #ninjaman {
+        background-color:  black;
+        height: 30px;
+        width: 30px;
+        display: inline-block;
+        background-image: url('img/ninja.gif');
+        background-size: contain;   
+        position: absolute;  
+      }
+      #world, #scoreboard {
+        display: inline-block;
+        vertical-align: top;
+      }
+      #ghost {
+        background-color:  black;
+        height: 30px;
+        width: 30px;
+        display: inline-block;
+        background-image: url('img/pinky.gif');
+        background-size: contain;   
+        position: absolute;  
+      }
+      #score, #lives {
+        font-size: 32px;
+      }
+      #gameOver {
+        font-size: 80px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id='world'></div>
+    <div id=scoreboard>Score:
+      <div id='score'></div>
+      Lives:
+      <div id='lives'></div>
+      <div id='gameOver'></div>
+    </div>
+    <div id='ninjaman'></div>
+    <div id='ghost'></div>
+  </body>
+
+  <script>
+    var world = [];
+    var score = 0;
+    var lives = 3;
+
+    function initWorld() {
+      var rows = 12 //Math.floor(Math.random() * (17) + 9);
+      var cols = 9 //Math.floor( Math.random() * (16) + 9);  
+
+      for (var i = 0; i < rows; i ++) {  // Initialize the borders and grid
+        world.push([]);
+        for (var j = 0; j < cols; j ++) {
+          world[i].push(1);
+        }
+      }
+      for (var i = 1; i < rows - 1; i ++) {
+        for (var j = 1; j < cols - 1; j ++) {
+          if (i % 2 === 0) {
+            world[i][j] = Math.floor(Math.random() * 3 + 1);
+          } else {
+            world[i][j] = Math.floor(Math.random() * 1 + 2);
+          }
+        }
+      }
+      world[ninjaman.y][ninjaman.x] = 0;
+    }
+
+    var worldDict = {
+      0: "blank",
+      1: "wall",
+      2: "sushi",
+      3: "onigiri"
+    }
+    var ninjaman = {
+      x: 1,
+      y: 1
+    }
+    var ghost = {
+      x: 7,
+      y: 10
+    }
+
+    function drawWorld() {
+      output = '';
+      for (var row = 0; row < world.length; row++) {
+        output += "<div class='row'>"
+        for (var x = 0; x < world[row].length; x ++) {
+          output += "<div class='" + worldDict[world[row][x]] + "'></div>"
+        }
+        output += "</div>"
+      }
+      document.getElementById('world').innerHTML = output;
+      document.getElementById('score').innerHTML = score;
+      document.getElementById('lives').innerHTML = lives;
+    }
+
+    function drawChars () {
+      document.getElementById('ninjaman').style.left = ninjaman.x * 30 + "px";
+      document.getElementById('ninjaman').style.top = ninjaman.y * 30 + "px";
+      document.getElementById('ghost').style.left = ghost.x * 30 + "px";
+      document.getElementById('ghost').style.top = ghost.y * 30 + "px";
+    }
+    function ghostChase() {
+      if (Math.abs(ghost.x - ninjaman.x) > Math.abs(ghost.y - ninjaman.y) && (world[ghost.y][ghost.x - (ghost.x - ninjaman.x)/Math.max(1,Math.abs(ghost.x - ninjaman.x))] !== 1)) {
+        ghost.x -= (ghost.x - ninjaman.x)/Math.max(1,Math.abs(ghost.x - ninjaman.x));
+      } else if (Math.abs(ghost.y - ninjaman.y) > Math.abs(ghost.x - ninjaman.x) && world[ghost.y - (ghost.y - ninjaman.y)/Math.max(1,Math.abs(ghost.y - ninjaman.y))][ghost.x] !== 1) {
+        ghost.y -= (ghost.y - ninjaman.y)/Math.max(1,Math.abs(ghost.y - ninjaman.y));
+      } 
+      
+      // else if (world[ghost.y + (ghost.y - ninjaman.y)/Math.max(1,Math.abs(ghost.y - ninjaman.y))][ghost.x] !== 1 && world[ghost.y][ghost.x + (ghost.x - ninjaman.x)/Math.max(1,Math.abs(ghost.x - ninjaman.x))] !== 1) {
+      //     if (Math.random() > 0.5) {
+      //       ghost.y += (ghost.y - ninjaman.y)/Math.max(1,Math.abs(ghost.y - ninjaman.y));
+      //     } else {
+      //       ghost.x += (ghost.x - ninjaman.x)/Math.max(1,Math.abs(ghost.x - ninjaman.x));
+      //     }
+      // }
+
+      
+      if (ghost.x === ninjaman.x && ghost.y === ninjaman.y) {
+        lives --;
+        ghost.x = 7;
+        ghost.y = 10;
+        ninjaman.x = 1;
+        ninjaman.y = 1;
+        if (lives === 0) {
+         document.getElementById('gameOver').innerHTML = "Game Over!!"
+        }
+      }
+    }
+
+    document.onkeydown = function (e) {
+     if (lives > 0) {
+      if (e.keyCode === 37 && world[ninjaman.y][ninjaman.x - 1] !== 1) { //LEFT
+        ninjaman.x--;
+        score += world[ninjaman.y][ninjaman.x] * 10;
+        world[ninjaman.y][ninjaman.x] = 0;
+      } else if (e.keyCode === 39 && world[ninjaman.y][ninjaman.x + 1] !== 1) { //RIGHT
+        ninjaman.x++;
+        score += world[ninjaman.y][ninjaman.x] * 10;
+        world[ninjaman.y][ninjaman.x] = 0;
+      } else if (e.keyCode === 38 && world[ninjaman.y - 1][ninjaman.x] !== 1) { //UP
+        ninjaman.y--;
+        score += world[ninjaman.y][ninjaman.x] * 10;
+        world[ninjaman.y][ninjaman.x] = 0;
+      } else if (e.keyCode === 40 && world[ninjaman.y + 1][ninjaman.x] !== 1) { //DOWN
+        ninjaman.y++;
+        score += world[ninjaman.y][ninjaman.x] * 10;
+        world[ninjaman.y][ninjaman.x] = 0;
+      }
+      ghostChase();
+      drawChars();
+      drawWorld();  
+     }
+    }
+
+    initWorld();
+    drawChars();
+    drawWorld();
+    
+  </script>
+</html>
